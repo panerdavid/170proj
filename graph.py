@@ -1,4 +1,4 @@
-import networkx as nx
+import Networkx as nx
 import matplotlib.pyplot as plt 
 graph = nx.fast_gnp_random_graph(50, 0.1, False)
 nx.draw(graph, with_labels=True) 
