@@ -8,10 +8,10 @@ locations = []
 for i in range(1, 201):
     locations.append("a" + str(i))
 
-#locations
-f = open('hard.txt','w')
+# locations
+f = open('hard.txt', 'w')
 
-#number of locations and homes
+# number of locations and homes
 f.write(str(200) + "\n")
 f.write(str(100) + "\n")
 
@@ -20,7 +20,7 @@ for i in range(200):
 
 f.write("\n")
 
-#homes
+# homes
 homes = []
 for i in range(50):
     rand = random.sample(range(1, 200), 100)
@@ -30,7 +30,7 @@ for i in rand:
 
 f.write("\n")
 
-#starting location
+# starting location
 set1 = set(locations)
 set2 = set(homes)
 valid_starts = set1.difference(set2)
@@ -43,4 +43,3 @@ for i in range(200):
         f.write("x ")
     f.write("\n")
 f.close()
-
