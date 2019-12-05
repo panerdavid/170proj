@@ -17,8 +17,8 @@ def findtour(inputfile):
         shortestpath = nx.dijkstra_path(G, nodedict.get(home), nodedict.get(start))
         paths += [shortestpath]
         shortestgraph = nx.path_graph(shortestpath)
-        graphs.append((shortestgraph, nodedict.get(start)))
-    mst = nx.join([graphs[0], graphs[1]])
+        graphs += [shortestgraph]
+    mst = nx.compose_all(graphs)
     return paths
 
 dir = "C:/Users/Shawn/Desktop/CS 170/project/inputs"
