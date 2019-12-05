@@ -12,11 +12,14 @@ def findtour(inputfile):
     for i in range(numl):
         nodedict[listl[i]] = next(nodes)
     paths = []
+    graphs = []
     for home in listh:
-        paths += [nx.dijkstra_path(G, nodedict.get(home), nodedict.get(start))]
-    MST = nx.minimum_spanning_tree(G)
+        shortestpath = nx.dijkstra_path(G, nodedict.get(home), nodedict.get(start))
+        paths += [shortestpath]
+        shortestgraph = nx.path_graph(shortestpath)
+        graphs.append((shortestgraph, nodedict.get(start)))
+    mst = nx.join([graphs[0], graphs[1]])
     return paths
-
 
 dir = "C:/Users/Shawn/Desktop/CS 170/project/inputs"
 files = get_files_with_extension(dir, 'in')
