@@ -43,8 +43,9 @@ def findtour(inputfile):
         paths += [shortestpath]
         shortestgraph = nx.path_graph(shortestpath)
         graphs += [shortestgraph]
-        distances += distance
+        distances+=(distance)
         disttonode[distance] = 
+    distance.sort(reverse = True)
     mst = nx.compose_all(graphs)
     leaves = [x for x in mst.nodes() if mst.degree(x) == 1]
     visited = []
