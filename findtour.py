@@ -2,7 +2,27 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from utils import get_files_with_extension, read_file
 from student_utils import data_parser, adjacency_matrix_to_graph
+import os.path
 
+def output(inputFileName, tour, dropDict):
+    output = inputFileName.replace(".in", ".out")
+    output = output.replace("/Users/panerdavid/Desktop/170/inputs_copy/", "")
+    savePath = "/Users/panerdavid/Desktop/170/outputs/"
+    completeName = os.path.join(savePath, output)
+    print(completeName)
+    f = open(completeName, "w+")
+    for location in tour:
+        f.write(location + " ")
+    f.write("\n")
+    f.write(str(len(dropDict)) + "\n")
+    
+    for dropoff in dropDict:
+        f.write(dropoff)
+        for home in dropDict[dropoff]:
+            f.write(" " + home)
+        f.write("\n")
+
+    f.close()
 
 def traverse(node, visited, leaves, drive, distances, adjlist, nodedict, dist2node, node2dist, G, startnode, MST, homes, dropdict):
     adjnodes = adjlist.get(node)
