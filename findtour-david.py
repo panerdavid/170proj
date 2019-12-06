@@ -2,8 +2,44 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from utils import get_files_with_extension, read_file
 from student_utils import data_parser, adjacency_matrix_to_graph
+import os.path
 
-# add inputs to keep track of dropoff locations and homes
+# path as a tour, dict =  {node [dest]}
+# Soda Dwinelle Campanile Barrows Soda
+# 3
+# Soda Cory
+# Dwinelle Wheeler RSF
+# Campanile Campanile
+def output(inputFileName, tour, dropDict):
+    output = inputFileName.replace(".in", ".out")
+    output = output.replace("/Users/panerdavid/Desktop/170/inputs_copy/", "")
+    savePath = "/Users/panerdavid/Desktop/170/outputs/"
+    completeName = os.path.join(savePath, output)
+    print(completeName)
+    f = open(completeName, "w+")
+    for location in tour:
+        f.write(location + " ")
+    f.write("\n")
+    f.write(str(len(dropDict)) + "\n")
+    
+    for dropoff in dropDict:
+        f.write(dropoff)
+        for home in dropDict[dropoff]:
+            f.write(" " + home)
+        f.write("\n")
+
+    f.close()
+
+def output(inputFileName, tour, dropDict):
+    output = inputFileName.replace(".in", ".out")
+    output = output.replace("/Users/panerdavid/Desktop/170/inputs_copy/", "")
+    savePath = "/Users/panerdavid/Desktop/170/outputs/"
+    completeName = os.path.join(savePath, output)
+    print(completeName)
+    f = open(completeName, "w+")
+    for location in tour:
+        f.write()
+    f.close()
 
 
 def traverse(node, visited, leaves, drive, distances, adjlist, nodedict, disttonode, nodetodist, G, startnode, MST, dropoff_locations, homes):
@@ -14,19 +50,20 @@ def traverse(node, visited, leaves, drive, distances, adjlist, nodedict, distton
         dropLoc.append(node)
     for adjnode in adjnodes:
         if adjnode in leaves:
-            # add current location to dropoff for leaf homes
-            dropLoc.append(node)
             visited += [adjnode]
+            dropLoc.append(node)
             popleaf += [adjnode]
             leafdist = nodetodist.pop(adjnode)
-            disttonode.pop(leafdist)
+            value = disttonode.pop(leafdist)
+            disttonode[leafdist] = value[1:]
             distances.remove(leafdist)
     for pop in popleaf:
         adjnodes.pop(pop)
     visited += [node]
     drive += [node]
     currdist = nodetodist.pop(node)
-    disttonode.pop(currdist)
+    value = disttonode.pop(currdist)
+    disttonode[currdist] = value[1:]
     distances.remove(currdist)
     if not adjnodes:
         if len(distances) == 0:
@@ -34,7 +71,9 @@ def traverse(node, visited, leaves, drive, distances, adjlist, nodedict, distton
             return drive + backpath
         else:
             fardist = distances.pop()
-            farnode = disttonode.pop(fardist)
+            value = disttonode.pop(fardist)
+            disttonode[fardist] = value[1:]
+            farnode = value[0]
             pathbetween = nx.dijkstra_path(G, node, farnode)
             drive += pathbetween
             dropoff_locations += dropLoc
@@ -51,19 +90,21 @@ def traverse(node, visited, leaves, drive, distances, adjlist, nodedict, distton
                     return drive + backpath
                 else:
                     fardist = distances.pop()
-                    farnode = disttonode.pop(fardist)
+                    value = disttonode.pop(fardist)
+                    disttonode[fardist] = value[1:]
+                    farnode = value[0]
                     pathbetween = nx.dijkstra_path(G, node, farnode)
                     drive += pathbetween
                     dropoff_locations += dropLoc
-
                     return traverse(farnode, visited, leaves, drive, distances, adjlist, nodedict, disttonode, nodetodist, G, startnode, MST, dropoff_locations, homes)
             nextnode = adjnodes.get(keys[i])
         return traverse(nextnode, visited, leaves, drive, distances, adjlist, nodedict, disttonode, nodetodist, G, startnode, MST, dropoff_locations, homes)
-    return
 
 
 def findtour(inputfile):
     data = read_file(inputfile)
+    # need this to create output file
+    name = inputfile.name
     numl, numh, listl, listh, start, matrix = data_parser(data)
     G, message = adjacency_matrix_to_graph(matrix)
     nodes = G.__iter__()
@@ -84,7 +125,10 @@ def findtour(inputfile):
         graphs += [shortestgraph]
         distances.append(distance)
         # fix duplicate keys
-        disttonode[distance] = homenode
+        if not distance in disttonode:
+            disttonode[distance] = [homenode]
+        else:
+            disttonode[distance].append(homenode)
         nodetodist[homenode] = distance
     distances.sort(reverse=True)
     mst = nx.compose_all(graphs)
@@ -95,11 +139,12 @@ def findtour(inputfile):
     startnode = nodedict.get(start)
     tour = traverse(startnode, visited, leaves, drive, distances,
                     adjlist, nodedict, disttonode, nodetodist, G, startnode, mst, [], listh)
-
-    return paths
+    return tour
 
 
 dir = "C:/Users/Shawn/Desktop/CS 170/project/inputs"
 files = get_files_with_extension(dir, 'in')
 for inputfile in files:
     paths = findtour(inputfile)
+
+
