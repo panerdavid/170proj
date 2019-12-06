@@ -4,7 +4,7 @@ from utils import get_files_with_extension, read_file
 from student_utils import data_parser, adjacency_matrix_to_graph
 
 
-def traverse(node, visited, leaves, drive, distances, adjlist, nodedict, disttonode, nodetodist):
+def traverse(node, visited, leaves, drive, distances, adjlist, nodedict, disttonode, nodetodist, G, startnode, MST):
     adjnodes = adjlist.get(node)
     popleaf = []
     for adjnode in adjnodes:
@@ -17,27 +17,39 @@ def traverse(node, visited, leaves, drive, distances, adjlist, nodedict, distton
             distances.remove(leafdist)
     for pop in popleaf:
         adjnodes.pop(pop)
+    visited += [node]
+    drive += [node]
+    currdist = nodetodist.pop(node)
+    disttonode.pop(currdist)
+    distances.remove(currdist)
     if not adjnodes:
-        visited += [node]
-        drive += [node]
         if len(distances) == 0:
-            return drive
+            backpath = nx.dijkstra_path(MST, node, startnode)
+            return drive + backpath
         else:
             fardist = distances.pop()
             farnode = disttonode.pop(fardist)
-            return traverse(farnode, visited, leaves, drive, distances, adjlist, nodedict, disttonode, nodetodist)
+            pathbetween = nx.dijkstra_path(G, node, farnode)
+            drive += pathbetween
+            return traverse(farnode, visited, leaves, drive, distances, adjlist, nodedict, disttonode, nodetodist, G, startnode, MST)
     else:
-        visited += [node]
-        drive += [node]
         keys = adjnodes.keys()
-        nextnode = adjnodes.get(keys[0])
-        i = 1
+        i = 0
+        nextnode = adjnodes.get(keys[i])
         while nextnode in visited:
-            nextnode = adjnodes.get(keys[i])
             i += 1
-        nextdist = nodetodist.get(nextnode)
-        distances.pop(nextdist)
-        return traverse(nextnode, visited, leaves, drive, distances, adjlist, nodedict, disttonode, nodetodist)
+            if i == MST.degree(node):
+                if len(visited) == nx.number_of_nodes(MST):
+                    backpath = nx.dijkstra_path(MST, node, startnode)
+                    return drive + backpath
+                else:
+                    fardist = distances.pop()
+                    farnode = disttonode.pop(fardist)
+                    pathbetween = nx.dijkstra_path(G, node, farnode)
+                    drive += pathbetween
+                    return traverse(farnode, visited, leaves, drive, distances, adjlist, nodedict, disttonode, nodetodist, G, startnode, MST)
+            nextnode = adjnodes.get(keys[i])
+        return traverse(nextnode, visited, leaves, drive, distances, adjlist, nodedict, disttonode, nodetodist, G, startnode, MST)
     return
 
 
@@ -62,10 +74,10 @@ def findtour(inputfile):
         shortestgraph = nx.path_graph(shortestpath)
         graphs += [shortestgraph]
         distances.append(distance)
+        # fix duplicate keys
         disttonode[distance] = homenode
         nodetodist[homenode] = distance
     distances.sort(reverse=True)
-    distances.remove(0)
     mst = nx.compose_all(graphs)
     leaves = [x for x in mst.nodes() if mst.degree(x) == 1]
     visited = []
@@ -73,7 +85,7 @@ def findtour(inputfile):
     adjlist = mst._adj
     startnode = nodedict.get(start)
     tour = traverse(startnode, visited, leaves, drive, distances,
-                    adjlist, nodedict, disttonode, nodetodist)
+                    adjlist, nodedict, disttonode, nodetodist, G, startnode, mst)
 
     return paths
 
