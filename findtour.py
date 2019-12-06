@@ -33,15 +33,31 @@ def findtour(inputfile):
         paths += [shortestpath]
         shortestgraph = nx.path_graph(shortestpath)
         graphs += [shortestgraph]
+    pathsFromStart = nx.single_source_dijkstra(nodedict.get(start), node for node in nodedict.keys())
+     #{v: k for k, v in my_map.items()}
+    pathsFromStart = {dist: node for node, dist in pathsFromStart.items()}
+    decreasingDist = pathsfromStart.sort().reverse()
+
     mst = nx.compose_all(graphs)
     leaves = [x for x in mst.nodes() if mst.degree(x) == 1]
+    #dfsdict = nx.dfs_successors(mst, nodedict.get(start))
     visited = []
-    drive = []
+     drive = []
     adjlist = mst._adj
     distance = []
     startnode = nodedict.get(start)
     tour = traverse(startnode, visited, leaves, drive, adjlist, nodedict)
-        
+    startnode = nodedict.get(start)
+    adjlist = mst.nodes._adj
+    # counter = 0
+    # while counter < len(nodedict):
+    mstNodes = list(mst)
+    traversalPath = []
+
+    while mstNodes:
+        path_so_far = adjlist
+        if node in leaves:
+
     return paths
 
 dir = "C:/Users/Shawn/Desktop/CS 170/project/inputs"
