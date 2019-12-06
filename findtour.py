@@ -1,22 +1,28 @@
-import networkx as nx 
+import networkx as nx
 import matplotlib.pyplot as plt
 from utils import get_files_with_extension, read_file
 from student_utils import data_parser, adjacency_matrix_to_graph
 
-def traverse(node, visited, leaves, drive, distance, adjlist, nodedict):
-    node = nodedict.get(nodename)
-    adjnodes = adjlist.get(node)
+
+def traverse(node, visited, leaves, drive, distance, adjlist, nodedict, disttonode, nodetodist):
+    adjnodes = adjlist.get(node) #all adjacent nodes to node (dictionary)
     for adjnode in adjnodes:
         if adjnode in leaves:
             visited += [adjnode]
             adjnodes.remove(adjnode)
+            leafdist = nodetodist.pop(adjnode)
+            disttonode.remove(leafdist)
     if not adjnodes:
-
+        visited += [node]
         keys = adjnodes.keys()
-        return traverse()
+        return traverse(adjnodes.get(keys[0]), visited, leaves, drive, adjlist, nodedict)
     else:
+        visited += [node]
+        closestdist = distance.pop()
+        closestnode = disttonode.pop(closestdist)
 
     return
+
 
 def findtour(inputfile):
     data = read_file(inputfile)
@@ -29,7 +35,8 @@ def findtour(inputfile):
     paths = []
     graphs = []
     for home in listh:
-        shortestpath = nx.dijkstra_path(G, nodedict.get(home), nodedict.get(start))
+        shortestpath = nx.dijkstra_path(
+            G, nodedict.get(home), nodedict.get(start))
         paths += [shortestpath]
         shortestgraph = nx.path_graph(shortestpath)
         graphs += [shortestgraph]
@@ -40,14 +47,12 @@ def findtour(inputfile):
     adjlist = mst._adj
     distance = []
     startnode = nodedict.get(start)
-    tour = traverse(startnode, visited, leaves, drive, adjlist, nodedict)
-        
+    tour = traverse(startnode, visited, leaves, drive, adjlist, nodedict, )
+
     return paths
+
 
 dir = "C:/Users/Shawn/Desktop/CS 170/project/inputs"
 files = get_files_with_extension(dir, 'in')
 for inputfile in files:
     paths = findtour(inputfile)
-
-
-    
