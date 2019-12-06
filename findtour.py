@@ -12,20 +12,20 @@ def traverse(node, visited, leaves, drive, distances, adjlist, nodedict, dist2no
         dropLoc.append(node)
     for adjnode in adjnodes:
         if not adjnode in visited:
-            if adjnode in leaves:#starting node can be a leaf, fix
+            if adjnode in leaves:
                 visited += [adjnode]
                 dropLoc.append(adjnode)
                 popleaf += [adjnode]
                 leafdist = node2dist.pop(adjnode)
                 value = dist2node.pop(leafdist)
                 dist2node[leafdist] = value[1:]
-                distances.remove(leafdist)
+                if leafdist in distances:
+                    distances.remove(leafdist)
     for pop in popleaf:
         adjnodes.pop(pop)
     dropdict[node] = dropLoc
     visited += [node]
     drive += [node]
-    #starting node not included in node2dist (101_100)
     if startnode in homes:
         if not node in visited:
             currdist = node2dist.pop(node)
@@ -38,13 +38,20 @@ def traverse(node, visited, leaves, drive, distances, adjlist, nodedict, dist2no
             return drive + backpath, dropdict
         else:
             fardist = distances.pop()
+            if fardist == 0:
+                return drive, dropdict
             value = dist2node.pop(fardist)
             dist2node[fardist] = value[1:]
             farnode = value[0]
+            i = 0
+            while farnode in visited:
+                i += 1
+                farnode = value[i]
+                dist2node[fardist] = value[:i - 1] + value[i + 1:]
             pathbetween = nx.dijkstra_path(G, node, farnode)
             drive += pathbetween[1:-1]
-            return traverse(farnode, visited, leaves, drive, distances, adjlist, nodedict, 
-                dist2node, node2dist, G, startnode, MST, homes, dropdict)
+            return traverse(farnode, visited, leaves, drive, distances, adjlist, nodedict,
+                            dist2node, node2dist, G, startnode, MST, homes, dropdict)
     else:
         keys = list(adjnodes.keys())
         i = 0
@@ -52,21 +59,52 @@ def traverse(node, visited, leaves, drive, distances, adjlist, nodedict, dist2no
         while nextnode in visited:
             i += 1
             if i == MST.degree(node):
-                if len(visited) == nx.number_of_nodes(MST):
+                if len(set(visited)) == nx.number_of_nodes(MST):
                     backpath = nx.dijkstra_path(MST, node, startnode)
                     return drive + backpath, dropdict
                 else:
+                    if not distances:
+                        backpath = nx.dijkstra_path(MST, node, startnode)
+                        return drive + backpath, dropdict
                     fardist = distances.pop()
                     value = dist2node.pop(fardist)
                     dist2node[fardist] = value[1:]
+                    while not value:
+                        if not distances:
+                            backpath = nx.dijkstra_path(MST, node, startnode)
+                            return drive + backpath, dropdict
+                        fardist = distances.pop()
+                        value = dist2node.pop(fardist)
+                        dist2node[fardist] = value[1:]
                     farnode = value[0]
+                    i = 0
+                    while farnode in visited:
+                        i += 1
+                        if i > len(value) - 1:
+                            if not distances:
+                                backpath = nx.dijkstra_path(MST, node, startnode)
+                                return drive + backpath, dropdict
+                            fardist = distances.pop()
+                            value = dist2node.pop(fardist)
+                            dist2node[fardist] = value[1:]
+                            while not value:
+                                if not distances:
+                                    backpath = nx.dijkstra_path(MST, node, startnode)
+                                    return drive + backpath, dropdict
+                                fardist = distances.pop()
+                                value = dist2node.pop(fardist)
+                                dist2node[fardist] = value[1:]
+                            farnode = value[0]
+                        else:
+                            farnode = value[i]
+                            dist2node[fardist] = value[:i - 1] + value[i + 1:]
                     pathbetween = nx.dijkstra_path(G, node, farnode)
                     drive += pathbetween[1:-1]
-                    return traverse(farnode, visited, leaves, drive, distances, adjlist, nodedict, 
-                        dist2node, node2dist, G, startnode, MST, homes, dropdict)
+                    return traverse(farnode, visited, leaves, drive, distances, adjlist, nodedict,
+                                    dist2node, node2dist, G, startnode, MST, homes, dropdict)
             nextnode = keys[i]
-        return traverse(nextnode, visited, leaves, drive, distances, adjlist, nodedict, 
-            dist2node, node2dist, G, startnode, MST, homes, dropdict)
+        return traverse(nextnode, visited, leaves, drive, distances, adjlist, nodedict,
+                        dist2node, node2dist, G, startnode, MST, homes, dropdict)
 
 
 def findtour(inputfile):
@@ -99,8 +137,6 @@ def findtour(inputfile):
         list_home_nodes += [homenode]
     distances.sort(reverse=False)
     mst = nx.compose_all(graphs)
-    nx.draw(mst, with_labels=True)
-    plt.show()
     leaves = [x for x in mst.nodes() if mst.degree(x) == 1]
     visited = []
     drive = []
@@ -108,7 +144,7 @@ def findtour(inputfile):
     startnode = nodedict.get(start)
     dropdict = {}
     tour, dropdict = traverse(startnode, visited, leaves, drive, distances,
-                    adjlist, nodedict, disttonode, nodetodist, G, startnode, mst, list_home_nodes, dropdict)
+                              adjlist, nodedict, disttonode, nodetodist, G, startnode, mst, list_home_nodes, dropdict)
     if len(tour) == 2:
         return tour[0], dropdict
     else:
@@ -116,6 +152,9 @@ def findtour(inputfile):
 
 
 dir = "C:/Users/Shawn/Desktop/CS 170/project/inputs"
-# files = get_files_with_extension(dir, 'in')
-# for inputfile in files:
-tour, dropdict = findtour('C:/Users/Shawn/Desktop/CS 170/project/inputs/101_100.in')
+files = get_files_with_extension(dir, 'in')
+for inputfile in files:
+    print(inputfile)
+    tour, dropdict = findtour(inputfile)
+
+
