@@ -1,7 +1,22 @@
 import networkx as nx 
+import matplotlib.pyplot as plt
 from utils import get_files_with_extension, read_file
 from student_utils import data_parser, adjacency_matrix_to_graph
 
+def traverse(node, visited, leaves, drive, distance, adjlist, nodedict):
+    node = nodedict.get(nodename)
+    adjnodes = adjlist.get(node)
+    for adjnode in adjnodes:
+        if adjnode in leaves:
+            visited += [adjnode]
+            adjnodes.remove(adjnode)
+    if not adjnodes:
+
+        keys = adjnodes.keys()
+        return traverse()
+    else:
+
+    return
 
 def findtour(inputfile):
     data = read_file(inputfile)
@@ -20,12 +35,12 @@ def findtour(inputfile):
         graphs += [shortestgraph]
     mst = nx.compose_all(graphs)
     leaves = [x for x in mst.nodes() if mst.degree(x) == 1]
-    dfsdict = nx.dfs_successors(mst, nodedict.get(start))
-    # visited = []
-    # startnode = nodedict.get(start)
-    # adjlist = mst.nodes._adj
-    # counter = 0
-    # while counter < len(nodedict):
+    visited = []
+    drive = []
+    adjlist = mst._adj
+    distance = []
+    startnode = nodedict.get(start)
+    tour = traverse(startnode, visited, leaves, drive, adjlist, nodedict)
         
     return paths
 
