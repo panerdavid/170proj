@@ -13,14 +13,16 @@ def traverse(node, visited, leaves, drive, distances, adjlist, nodedict, distton
             visited += [adjnode]
             popleaf += [adjnode]
             leafdist = nodetodist.pop(adjnode)
-            disttonode.pop(leafdist)
+            value = disttonode.pop(leafdist)
+            disttonode[leafdist] = value[1:]
             distances.remove(leafdist)
     for pop in popleaf:
         adjnodes.pop(pop)
     visited += [node]
     drive += [node]
     currdist = nodetodist.pop(node)
-    disttonode.pop(currdist)
+    value = disttonode.pop(currdist)
+    disttonode[currdist] = value[1:]
     distances.remove(currdist)
     if not adjnodes:
         if len(distances) == 0:
@@ -28,7 +30,9 @@ def traverse(node, visited, leaves, drive, distances, adjlist, nodedict, distton
             return drive + backpath
         else:
             fardist = distances.pop()
-            farnode = disttonode.pop(fardist)
+            value = disttonode.pop(fardist)
+            disttonode[fardist] = value[1:]
+            farnode = value[0]
             pathbetween = nx.dijkstra_path(G, node, farnode)
             drive += pathbetween
             return traverse(farnode, visited, leaves, drive, distances, adjlist, nodedict, disttonode, nodetodist, G, startnode, MST)
@@ -44,7 +48,9 @@ def traverse(node, visited, leaves, drive, distances, adjlist, nodedict, distton
                     return drive + backpath
                 else:
                     fardist = distances.pop()
-                    farnode = disttonode.pop(fardist)
+                    value = disttonode.pop(fardist)
+                    disttonode[fardist] = value[1:]
+                    farnode = value[0]
                     pathbetween = nx.dijkstra_path(G, node, farnode)
                     drive += pathbetween
                     return traverse(farnode, visited, leaves, drive, distances, adjlist, nodedict, disttonode, nodetodist, G, startnode, MST)
@@ -75,7 +81,10 @@ def findtour(inputfile):
         graphs += [shortestgraph]
         distances.append(distance)
         # fix duplicate keys
-        disttonode[distance] = homenode
+        if not distance in disttonode:
+            disttonode[distance] = [homenode]
+        else:
+            disttonode[distance].append(homenode)
         nodetodist[homenode] = distance
     distances.sort(reverse=True)
     mst = nx.compose_all(graphs)
