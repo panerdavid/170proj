@@ -34,24 +34,22 @@ def findtour(inputfile):
         nodedict[listl[i]] = next(nodes)
     paths = []
     graphs = []
+    distances = []
+    disttonode = {}
+    nodetodist = {}
     for home in listh:
-        shortestpath = nx.dijkstra_path(
+        distance, shortestpath = nx.single_source_dijkstra(
             G, nodedict.get(home), nodedict.get(start))
         paths += [shortestpath]
         shortestgraph = nx.path_graph(shortestpath)
         graphs += [shortestgraph]
-    pathsFromStart = nx.single_source_dijkstra(nodedict.get(start), node for node in nodedict.keys())
-     #{v: k for k, v in my_map.items()}
-    pathsFromStart = {dist: node for node, dist in pathsFromStart.items()}
-    decreasingDist = pathsfromStart.sort().reverse()
-
+        distances += distance
+        disttonode[distance] = 
     mst = nx.compose_all(graphs)
     leaves = [x for x in mst.nodes() if mst.degree(x) == 1]
-    #dfsdict = nx.dfs_successors(mst, nodedict.get(start))
     visited = []
     drive = []
     adjlist = mst._adj
-    distance = []
     startnode = nodedict.get(start)
     tour = traverse(startnode, visited, leaves, drive, adjlist, nodedict, )
 
