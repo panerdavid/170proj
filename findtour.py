@@ -4,13 +4,16 @@ from utils import get_files_with_extension, read_file
 from student_utils import data_parser, adjacency_matrix_to_graph
 
 
-def traverse(node, visited, leaves, drive, distances, adjlist, nodedict, disttonode, nodetodist, G, startnode, MST):
+def traverse(node, visited, leaves, drive, distances, adjlist, nodedict, disttonode, nodetodist, G, startnode, MST, dropoff_locations, homes):
     adjnodes = adjlist.get(node)
     popleaf = []
+    dropLoc = []
+    if node in homes:
+        dropLoc.append(node)
     for adjnode in adjnodes:
         if adjnode in leaves:
-            # add current location to dropoff for leaf homes
             visited += [adjnode]
+            dropLoc.append(node)
             popleaf += [adjnode]
             leafdist = nodetodist.pop(adjnode)
             value = disttonode.pop(leafdist)
@@ -35,7 +38,8 @@ def traverse(node, visited, leaves, drive, distances, adjlist, nodedict, distton
             farnode = value[0]
             pathbetween = nx.dijkstra_path(G, node, farnode)
             drive += pathbetween
-            return traverse(farnode, visited, leaves, drive, distances, adjlist, nodedict, disttonode, nodetodist, G, startnode, MST)
+            dropoff_locations += dropLoc
+            return traverse(farnode, visited, leaves, drive, distances, adjlist, nodedict, disttonode, nodetodist, G, startnode, MST, dropoff_locations, homes)
     else:
         keys = adjnodes.keys()
         i = 0
@@ -53,10 +57,10 @@ def traverse(node, visited, leaves, drive, distances, adjlist, nodedict, distton
                     farnode = value[0]
                     pathbetween = nx.dijkstra_path(G, node, farnode)
                     drive += pathbetween
-                    return traverse(farnode, visited, leaves, drive, distances, adjlist, nodedict, disttonode, nodetodist, G, startnode, MST)
+                    dropoff_locations += dropLoc
+                    return traverse(farnode, visited, leaves, drive, distances, adjlist, nodedict, disttonode, nodetodist, G, startnode, MST, dropoff_locations, homes)
             nextnode = adjnodes.get(keys[i])
-        return traverse(nextnode, visited, leaves, drive, distances, adjlist, nodedict, disttonode, nodetodist, G, startnode, MST)
-    return
+        return traverse(nextnode, visited, leaves, drive, distances, adjlist, nodedict, disttonode, nodetodist, G, startnode, MST, dropoff_locations, homes)
 
 
 def findtour(inputfile):
@@ -94,9 +98,8 @@ def findtour(inputfile):
     adjlist = mst._adj
     startnode = nodedict.get(start)
     tour = traverse(startnode, visited, leaves, drive, distances,
-                    adjlist, nodedict, disttonode, nodetodist, G, startnode, mst)
-
-    return paths
+                    adjlist, nodedict, disttonode, nodetodist, G, startnode, mst, [], listh)
+    return tour
 
 
 dir = "C:/Users/Shawn/Desktop/CS 170/project/inputs"
