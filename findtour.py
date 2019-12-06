@@ -4,7 +4,7 @@ from utils import get_files_with_extension, read_file
 from student_utils import data_parser, adjacency_matrix_to_graph
 
 
-def traverse(node, visited, leaves, drive, distances, adjlist, nodedict, disttonode, nodetodist, G, startnode, MST, dropoff_locations, homes):
+def traverse(node, visited, leaves, drive, distances, adjlist, nodedict, dist2node, node2dist, G, startnode, MST, homes, dropdict):
     adjnodes = adjlist.get(node)
     popleaf = []
     dropLoc = []
@@ -13,33 +13,35 @@ def traverse(node, visited, leaves, drive, distances, adjlist, nodedict, distton
     for adjnode in adjnodes:
         if adjnode in leaves:
             visited += [adjnode]
-            dropLoc.append(node)
+            dropLoc.append(adjnode)
             popleaf += [adjnode]
-            leafdist = nodetodist.pop(adjnode)
-            value = disttonode.pop(leafdist)
-            disttonode[leafdist] = value[1:]
+            leafdist = node2dist.pop(adjnode)
+            value = dist2node.pop(leafdist)
+            dist2node[leafdist] = value[1:]
             distances.remove(leafdist)
     for pop in popleaf:
         adjnodes.pop(pop)
+    dropdict[node] = dropLoc
     visited += [node]
     drive += [node]
-    currdist = nodetodist.pop(node)
-    value = disttonode.pop(currdist)
-    disttonode[currdist] = value[1:]
+    #starting node not included in node2dist (101_100)
+    currdist = node2dist.pop(node)
+    value = dist2node.pop(currdist)
+    dist2node[currdist] = value[1:]
     distances.remove(currdist)
     if not adjnodes:
         if len(distances) == 0:
             backpath = nx.dijkstra_path(MST, node, startnode)
-            return drive + backpath
+            return drive + backpath, dropdict
         else:
             fardist = distances.pop()
-            value = disttonode.pop(fardist)
-            disttonode[fardist] = value[1:]
+            value = dist2node.pop(fardist)
+            dist2node[fardist] = value[1:]
             farnode = value[0]
             pathbetween = nx.dijkstra_path(G, node, farnode)
             drive += pathbetween
-            dropoff_locations += dropLoc
-            return traverse(farnode, visited, leaves, drive, distances, adjlist, nodedict, disttonode, nodetodist, G, startnode, MST, dropoff_locations, homes)
+            return traverse(farnode, visited, leaves, drive, distances, adjlist, nodedict, 
+                dist2node, node2dist, G, startnode, MST, homes, dropdict)
     else:
         keys = adjnodes.keys()
         i = 0
@@ -49,18 +51,19 @@ def traverse(node, visited, leaves, drive, distances, adjlist, nodedict, distton
             if i == MST.degree(node):
                 if len(visited) == nx.number_of_nodes(MST):
                     backpath = nx.dijkstra_path(MST, node, startnode)
-                    return drive + backpath
+                    return drive + backpath, dropdict
                 else:
                     fardist = distances.pop()
-                    value = disttonode.pop(fardist)
-                    disttonode[fardist] = value[1:]
+                    value = dist2node.pop(fardist)
+                    dist2node[fardist] = value[1:]
                     farnode = value[0]
                     pathbetween = nx.dijkstra_path(G, node, farnode)
                     drive += pathbetween
-                    dropoff_locations += dropLoc
-                    return traverse(farnode, visited, leaves, drive, distances, adjlist, nodedict, disttonode, nodetodist, G, startnode, MST, dropoff_locations, homes)
+                    return traverse(farnode, visited, leaves, drive, distances, adjlist, nodedict, 
+                        dist2node, node2dist, G, startnode, MST, homes, dropdict)
             nextnode = adjnodes.get(keys[i])
-        return traverse(nextnode, visited, leaves, drive, distances, adjlist, nodedict, disttonode, nodetodist, G, startnode, MST, dropoff_locations, homes)
+        return traverse(nextnode, visited, leaves, drive, distances, adjlist, nodedict, 
+            dist2node, node2dist, G, startnode, MST, homes, dropdict)
 
 
 def findtour(inputfile):
@@ -84,7 +87,6 @@ def findtour(inputfile):
         shortestgraph = nx.path_graph(shortestpath)
         graphs += [shortestgraph]
         distances.append(distance)
-        # fix duplicate keys
         if not distance in disttonode:
             disttonode[distance] = [homenode]
         else:
@@ -97,12 +99,16 @@ def findtour(inputfile):
     drive = []
     adjlist = mst._adj
     startnode = nodedict.get(start)
-    tour = traverse(startnode, visited, leaves, drive, distances,
-                    adjlist, nodedict, disttonode, nodetodist, G, startnode, mst, [], listh)
-    return tour
+    dropdict = {}
+    tour, dropdict = traverse(startnode, visited, leaves, drive, distances,
+                    adjlist, nodedict, disttonode, nodetodist, G, startnode, mst, listh, dropdict)
+    if len(tour) == 2:
+        return tour[0], dropdict
+    else:
+        return tour, dropdict
 
 
 dir = "C:/Users/Shawn/Desktop/CS 170/project/inputs"
 files = get_files_with_extension(dir, 'in')
 for inputfile in files:
-    paths = findtour(inputfile)
+    tour, dropdict = findtour(inputfile)

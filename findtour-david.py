@@ -38,7 +38,7 @@ def traverse(node, visited, leaves, drive, distances, adjlist, nodedict, distton
             pathbetween = nx.dijkstra_path(G, node, farnode)
             drive += pathbetween
             dropoff_locations += dropLoc
-            return traverse(farnode, visited, leaves, drive, distances, adjlist, nodedict, disttonode, nodetodist, G, startnode, MST, dropLoc, homes)
+            return traverse(farnode, visited, leaves, drive, distances, adjlist, nodedict, disttonode, nodetodist, G, startnode, MST, dropoff_locations, homes)
     else:
         keys = adjnodes.keys()
         i = 0
@@ -56,9 +56,9 @@ def traverse(node, visited, leaves, drive, distances, adjlist, nodedict, distton
                     drive += pathbetween
                     dropoff_locations += dropLoc
 
-                    return traverse(farnode, visited, leaves, drive, distances, adjlist, nodedict, disttonode, nodetodist, G, startnode, MST, dropLoc, homes)
+                    return traverse(farnode, visited, leaves, drive, distances, adjlist, nodedict, disttonode, nodetodist, G, startnode, MST, dropoff_locations, homes)
             nextnode = adjnodes.get(keys[i])
-        return traverse(nextnode, visited, leaves, drive, distances, adjlist, nodedict, disttonode, nodetodist, G, startnode, MST, dropLoc, homes)
+        return traverse(nextnode, visited, leaves, drive, distances, adjlist, nodedict, disttonode, nodetodist, G, startnode, MST, dropoff_locations, homes)
     return
 
 
@@ -94,7 +94,7 @@ def findtour(inputfile):
     adjlist = mst._adj
     startnode = nodedict.get(start)
     tour = traverse(startnode, visited, leaves, drive, distances,
-                    adjlist, nodedict, disttonode, nodetodist, G, startnode, mst, [], homes)
+                    adjlist, nodedict, disttonode, nodetodist, G, startnode, mst, [], listh)
 
     return paths
 
