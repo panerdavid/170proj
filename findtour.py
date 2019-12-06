@@ -19,6 +19,14 @@ def findtour(inputfile):
         shortestgraph = nx.path_graph(shortestpath)
         graphs += [shortestgraph]
     mst = nx.compose_all(graphs)
+    leaves = [x for x in mst.nodes() if mst.degree(x) == 1]
+    dfsdict = nx.dfs_successors(mst, nodedict.get(start))
+    # visited = []
+    # startnode = nodedict.get(start)
+    # adjlist = mst.nodes._adj
+    # counter = 0
+    # while counter < len(nodedict):
+        
     return paths
 
 dir = "C:/Users/Shawn/Desktop/CS 170/project/inputs"
