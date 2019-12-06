@@ -8,6 +8,7 @@ def traverse(node, visited, leaves, drive, distances, adjlist, nodedict, distton
     adjnodes = adjlist.get(node)
     for adjnode in adjnodes:
         if adjnode in leaves:
+            #add current location to dropoff for leaf homes
             visited += [adjnode]
             adjnodes.remove(adjnode)
             leafdist = nodetodist.pop(adjnode)
