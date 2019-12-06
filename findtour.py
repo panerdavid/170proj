@@ -4,8 +4,8 @@ from utils import get_files_with_extension, read_file
 from student_utils import data_parser, adjacency_matrix_to_graph
 
 
-def traverse(node, visited, leaves, drive, distance, adjlist, nodedict, disttonode, nodetodist):
-    adjnodes = adjlist.get(node) #all adjacent nodes to node (dictionary)
+def traverse(node, visited, leaves, drive, distances, adjlist, nodedict, disttonode, nodetodist):
+    adjnodes = adjlist.get(node)
     for adjnode in adjnodes:
         if adjnode in leaves:
             visited += [adjnode]
@@ -14,13 +14,20 @@ def traverse(node, visited, leaves, drive, distance, adjlist, nodedict, disttono
             disttonode.remove(leafdist)
     if not adjnodes:
         visited += [node]
+        drive += [node]
         keys = adjnodes.keys()
-        return traverse(adjnodes.get(keys[0]), visited, leaves, drive, adjlist, nodedict)
+        nextnode = adjnodes.get(keys[0])
+        i = 1
+        while nextnode in visited:
+            nextnode = adjnodes.get(keys[i])
+            i += 1
+        return traverse(nextnode, visited, leaves, drive, distances, adjlist, nodedict, disttonode, nodetodist)
     else:
         visited += [node]
-        closestdist = distance.pop()
-        closestnode = disttonode.pop(closestdist)
-
+        drive += [node]
+        fardist = distances.pop()
+        farnode = disttonode.pop(fardist)
+        return traverse(farnode, visited, leaves, drive, distances, adjlist, nodedict, disttonode, nodetodist)
     return
 
 
@@ -38,21 +45,23 @@ def findtour(inputfile):
     disttonode = {}
     nodetodist = {}
     for home in listh:
+        homenode = nodedict.get(home)
         distance, shortestpath = nx.single_source_dijkstra(
-            G, nodedict.get(home), nodedict.get(start))
+            G, homenode, nodedict.get(start))
         paths += [shortestpath]
         shortestgraph = nx.path_graph(shortestpath)
         graphs += [shortestgraph]
-        distances+=(distance)
-        disttonode[distance] = 
-    distance.sort(reverse = True)
+        distances += (distance)
+        disttonode[distance] = homenode
+        nodetodist[homenode] = distance
+    distances.sort(reverse = True)
     mst = nx.compose_all(graphs)
     leaves = [x for x in mst.nodes() if mst.degree(x) == 1]
     visited = []
     drive = []
     adjlist = mst._adj
     startnode = nodedict.get(start)
-    tour = traverse(startnode, visited, leaves, drive, adjlist, nodedict, )
+    tour = traverse(startnode, visited, leaves, drive, distances, adjlist, nodedict, disttonode, nodetodist)
 
     return paths
 
