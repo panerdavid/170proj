@@ -4,24 +4,22 @@ from utils import get_files_with_extension, read_file
 from student_utils import data_parser, adjacency_matrix_to_graph
 import os.path
 
-def output(inputFileName, tour, dropDict):
+def output(inputFileName, tour, dropDict, numDict):
     output = inputFileName.replace(".in", ".out")
-    output = output.replace("/Users/panerdavid/Desktop/170/inputs_copy/", "")
-    savePath = "/Users/panerdavid/Desktop/170/outputs/"
+    output = output.replace("C:/Users/Shawn/Desktop/CS 170/170proj/inputs/", "")
+    savePath = "C:/Users/Shawn/Desktop/CS 170/170proj/outputs/"
     completeName = os.path.join(savePath, output)
     print(completeName)
     f = open(completeName, "w+")
     for location in tour:
-        f.write(location + " ")
+        f.write(numDict[location] + " ")
     f.write("\n")
     f.write(str(len(dropDict)) + "\n")
-    
     for dropoff in dropDict:
-        f.write(dropoff)
+        f.write(numDict[dropoff])
         for home in dropDict[dropoff]:
-            f.write(" " + home)
+            f.write(" " + numDict[home])
         f.write("\n")
-
     f.close()
 
 def traverse(node, visited, leaves, drive, distances, adjlist, nodedict, dist2node, node2dist, G, startnode, MST, homes, dropdict):
@@ -43,7 +41,8 @@ def traverse(node, visited, leaves, drive, distances, adjlist, nodedict, dist2no
                     distances.remove(leafdist)
     for pop in popleaf:
         adjnodes.pop(pop)
-    dropdict[node] = dropLoc
+    if dropLoc:
+        dropdict[node] = dropLoc
     visited += [node]
     drive += [node]
     if startnode in homes:
@@ -133,8 +132,11 @@ def findtour(inputfile):
     G, message = adjacency_matrix_to_graph(matrix)
     nodes = G.__iter__()
     nodedict = {}
+    numdict = {}
     for i in range(numl):
-        nodedict[listl[i]] = next(nodes)
+        nextnode = next(nodes)
+        nodedict[listl[i]] = nextnode
+        numdict[nextnode] = listl[i]
     paths = []
     graphs = []
     distances = []
@@ -165,16 +167,13 @@ def findtour(inputfile):
     dropdict = {}
     tour, dropdict = traverse(startnode, visited, leaves, drive, distances,
                               adjlist, nodedict, disttonode, nodetodist, G, startnode, mst, list_home_nodes, dropdict)
-    if len(tour) == 2:
-        return tour[0], dropdict
-    else:
-        return tour, dropdict
+    tour = [tour[i] for i in range(len(tour)) if (i == 0) or tour[i] != tour[i - 1]]
+    return tour, dropdict, numdict
 
-
-dir = "C:/Users/Shawn/Desktop/CS 170/project/inputs"
+dir = "C:/Users/Shawn/Desktop/CS 170/170proj/inputs"
 files = get_files_with_extension(dir, 'in')
 for inputfile in files:
-    print(inputfile)
-    tour, dropdict = findtour(inputfile)
+    tour, dropdict, numdict = findtour(inputfile)
+    output(inputfile, tour, dropdict, numdict)
 
 
